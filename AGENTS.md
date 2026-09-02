@@ -7,6 +7,7 @@
 ## 开发约定
 
 - 开发前先阅读相关代码和 README。
+- Windows 环境运行 Python 时使用绝对路径：`C:\Users\Administrator\AppData\Local\Programs\Python\Python312\python.exe`。
 - 保持模块边界清晰，避免无必要地引入大型依赖。
 - 所有时间使用带时区的 ISO 8601 格式。
 - API Key、密码、Cookie、课表账号和个人数据不得写入代码或提交到 Git。
@@ -36,4 +37,9 @@ docs: add project documentation
 - 涉及前端时检查构建是否成功。
 - 涉及后端时检查接口启动和错误处理。
 - 推送前确认没有敏感信息和无关的大文件。
+
+## 文档维护要求
+
+- 完成用户可感知的功能或行为变化后，及时更新 `CHANGELOG.md`。
+- 完成重要开发任务后，在 `docs/worklog/` 下新增或更新一份按 `YYYY-MM-DD-主题.md` 命名的开发日志，记录背景、决策、验证结果和后续事项。
 

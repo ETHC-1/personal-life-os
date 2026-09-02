@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>个人生活 OS</title>
+    <link rel="stylesheet" href="/styles.css?v=20260901-room-timeline" />
+  </head>
+  <body>
+    <header class="app-titlebar" data-tauri-drag-region>
+      <div class="window-brand"><span class="window-logo">⌁</span><span>个人生活 OS</span><small>DESKTOP</small></div>
+      <div class="window-actions" aria-label="窗口控制">
+        <button type="button" data-window-action="minimize" title="最小化">−</button>
+        <button type="button" data-window-action="maximize" title="最大化">□</button>
+        <button type="button" data-window-action="close" class="window-close" title="关闭">×</button>
+      </div>
+    </header>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand"><span class="brand-mark">⌁</span><span>个人生活 OS</span></div>
+        <nav class="nav" aria-label="主导航">
+          <a class="nav-item active" href="#overview"><span>▦</span>今日概览</a>
+          <a class="nav-item" href="#schedule"><span>▤</span>周课表</a>
+          <a class="nav-item" href="#courses"><span>◫</span>课程库</a>
+          <a class="nav-item" href="#reminders"><span>◷</span>提醒</a>
+          <a class="nav-item" href="#empty-rooms"><span>⌗</span>空教室</a>
+          <a class="nav-item coming-soon" href="#assistant" aria-disabled="true"><span>✦</span>AI 助手<em>规划中</em></a>
+          <a class="nav-item coming-soon" href="#sync" aria-disabled="true"><span>⇄</span>同步中心<em>规划中</em></a>
+        </nav>
+        <div class="sidebar-foot"><div class="status-dot"></div><span>本地模式</span><span class="muted">v0.1</span></div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div><p class="eyebrow">个人空间 / 2026 秋季学期</p><h1>早上好，准备好开始了吗？</h1></div>
+          <div class="top-actions"><button class="button secondary" id="calendar-button">＋ 新建日程</button><button class="button primary" id="import-button">＋ 导入课表</button><button class="icon-button" title="刷新" id="refresh-button">↻</button><div class="avatar">我</div></div>
+        </header>
+
+        <section id="overview" class="hero-grid">
+          <div class="hero-card"><div><p class="eyebrow">今天 · <span id="today-label">加载中</span></p><h2 id="next-course-title">正在读取你的安排…</h2><p class="hero-subtitle" id="next-course-meta">连接本地数据</p><p class="hero-clock" id="system-clock">—</p></div><div class="hero-icon">☼</div></div>
+          <div class="metric-card"><p class="eyebrow">本周课程</p><strong id="course-count">—</strong><span>门课程</span><div class="mini-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+          <div class="metric-card"><p class="eyebrow">未完成待办</p><strong id="todo-count">—</strong><span>项待办</span><div class="metric-note">从最重要的一件开始</div></div>
+        </section>
+
+        <div id="error-banner" class="notice error" hidden></div>
+        <div id="demo-banner" class="notice" hidden>当前显示演示课表。导入你的课表后，刷新页面即可看到真实数据。</div>
+
+        <section id="calendar" class="content-section"><div class="section-heading"><div><p class="eyebrow">日历安排</p><h2>近期日程</h2></div><button class="text-button" id="calendar-add-button">＋ 添加日程</button></div><div class="calendar-list" id="calendar-list"><div class="empty-state">正在读取日程…</div></div></section>
+
+        <section id="schedule" class="content-section"><div class="section-heading"><div><p class="eyebrow">计划安排</p><h2>本周课表</h2></div><button class="text-button" id="today-button">回到今天</button></div><div class="week-strip" id="week-strip"></div><div class="schedule-grid" id="schedule-grid"></div></section>
+
+        <section id="empty-rooms" class="content-section room-section"><div class="section-heading"><div><p class="eyebrow">教室状态 · 东教学楼</p><h2>空教室时间视图</h2></div><div class="room-tools"><div class="room-date-buttons" id="room-date-buttons"></div><div class="room-legend"><span><i class="legend-free"></i>空闲</span><span><i class="legend-busy"></i>有课</span></div></div></div><div class="room-timeline" id="room-timeline"><div class="empty-state">完成一次校园网抓取后，这里会显示 1—19 教室的时间进度。</div></div></section>
+
+        <section id="todos" class="content-section"><div class="section-heading"><div><p class="eyebrow">行动清单</p><h2>我的待办</h2></div><button class="text-button" id="todo-add-button">＋ 添加待办</button></div><div class="todo-list" id="todo-list"><div class="empty-state">正在读取待办…</div></div></section>
+
+        <section class="bottom-grid">
+          <div id="courses" class="panel"><div class="section-heading"><div><p class="eyebrow">知识地图</p><h2>我的课程</h2></div><span class="pill" id="semester-pill">—</span></div><div class="course-list" id="course-list"></div></div>
+          <div id="reminders" class="panel reminders-panel"><div class="section-heading"><div><p class="eyebrow">接下来</p><h2>提醒预览</h2></div><span class="pill warm">本地</span></div><div id="reminder-list" class="reminder-list"></div></div>
+        </section>
+        <footer>数据保存在本机 · <span id="store-path">—</span></footer>
+      </main>
+    </div>
+    <div class="modal-backdrop" id="import-modal" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="import-title"><div class="modal-heading"><div><p class="eyebrow">课程同步</p><h2 id="import-title">导入课表</h2></div><button class="close-button" id="close-import">×</button></div><div class="import-tabs"><button class="tab active" data-tab="file">上传文件</button><button class="tab" data-tab="hebmu">校园网登录</button></div><div id="file-panel" class="import-panel"><p class="modal-help">支持 JSON、HTML、HTM 文件。导入后会覆盖本地最终课表。</p><label class="file-drop" for="schedule-file"><span>⌁</span><b id="file-label">选择课表文件</b><small>最大 10 MB</small></label><input id="schedule-file" type="file" accept=".json,.html,.htm" hidden><label class="field-label">学期（可选）<input id="file-semester" placeholder="例如 202601" maxlength="32"></label><button class="button primary full" id="file-import-submit">开始导入</button></div><div id="hebmu-panel" class="import-panel" hidden><p class="modal-help">先查询东教学楼。点击开始后会打开校园网登录页，登录一次后连续抓取课程、今天和明天的东教学楼教室数据。</p><div class="form-row"><label class="field-label">学期<input id="hebmu-semester" value="202601" maxlength="32"></label><label class="field-label">周次（可选）<input id="hebmu-week" placeholder="留空抓取全部"></label></div><div class="form-row"><label class="field-label">课程开始日期<input id="hebmu-start" type="date"></label><label class="field-label">课程结束日期<input id="hebmu-end" type="date"></label></div><div class="fixed-building"><span>楼栋</span><b>中山校区 · 东教学楼</b><small>固定支持东教学楼 1—19 教室</small></div><div class="form-row"><label class="field-label">今天<input id="room-query-today" type="date"></label><label class="field-label">明天<input id="room-query-tomorrow" type="date"></label></div><button class="button primary full" id="hebmu-import-submit">登录一次并抓取两类信息</button></div><div class="import-status" id="import-status" hidden></div></section></div>
+    <div class="modal-backdrop" id="calendar-modal" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="calendar-title"><div class="modal-heading"><div><p class="eyebrow">日历安排</p><h2 id="calendar-title">新建日程</h2></div><button class="close-button" id="close-calendar">×</button></div><p class="modal-help">时间按本机时区保存，开始和结束时间必须完整填写。</p><label class="field-label">标题<input id="calendar-event-title" maxlength="200" required placeholder="例如：项目评审"></label><div class="form-row"><label class="field-label">开始时间<input id="calendar-event-start" type="datetime-local" required></label><label class="field-label">结束时间<input id="calendar-event-end" type="datetime-local" required></label></div><label class="field-label">地点（可选）<input id="calendar-event-location" maxlength="200" placeholder="例如：线上会议"></label><label class="field-label">备注（可选）<textarea id="calendar-event-description" maxlength="2000" rows="3" placeholder="补充信息"></textarea></label><button class="button primary full" id="calendar-submit">保存日程</button><div class="import-status" id="calendar-status" hidden></div></section></div>
+    <div class="modal-backdrop" id="todo-modal" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="todo-title"><div class="modal-heading"><div><p class="eyebrow">行动清单</p><h2 id="todo-title">新建待办</h2></div><button class="close-button" id="close-todo">×</button></div><label class="field-label">待办内容<input id="todo-item-title" maxlength="200" required placeholder="例如：完成课程报告"></label><div class="form-row"><label class="field-label">优先级<select id="todo-item-priority"><option value="low">低</option><option value="medium" selected>中</option><option value="high">高</option></select></label><label class="field-label">截止时间（可选）<input id="todo-item-due" type="datetime-local"></label></div><label class="field-label">备注（可选）<textarea id="todo-item-description" maxlength="2000" rows="3" placeholder="补充信息"></textarea></label><button class="button primary full" id="todo-submit">保存待办</button><div class="import-status" id="todo-status" hidden></div></section></div>
+    <script src="/app.js?v=20260901-calendar"></script>
+  </body>
+</html>

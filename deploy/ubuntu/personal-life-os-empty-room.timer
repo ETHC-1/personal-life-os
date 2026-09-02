@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Personal Life OS empty room fetch hourly during daytime
+
+[Timer]
+OnCalendar=*-*-* 06..21:00:00
+Persistent=true
+Unit=personal-life-os-empty-room.service
+
+[Install]
+WantedBy=timers.target

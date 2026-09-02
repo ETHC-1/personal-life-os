@@ -1,0 +1,18 @@
+[Unit]
+Description=Personal Life OS web service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=personal-life-os
+Group=personal-life-os
+WorkingDirectory=/opt/personal-life-os
+ExecStart=/opt/personal-life-os/.venv/bin/personal-life-os-web --host 127.0.0.1 --port 8000 --store /var/lib/personal-life-os/final_schedule.json --empty-room-store /var/lib/personal-life-os/empty-rooms.json
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

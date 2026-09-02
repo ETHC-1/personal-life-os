@@ -1,0 +1,35 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+docs/integrations/HEBMU-JW-AUTH-ARCHIVE.DO-NOT-COMMIT.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+.uv-cache/
+.uv-python/
+
+# Rust/Tauri build output
+target/
+desktop/src-tauri/target/
+
+# Local personal data
+final_schedule.json
+calendar.json
+todos.json
+empty-rooms.json
+.personal-life-os/
+
+# Editors and OS files
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+Desktop.ini
