@@ -9,3 +9,12 @@
 .room-floor-group .room-timeline-row:last-child{border-bottom:0}
 .period-label{top:18px;font-size:14px}.occupied-bar{top:0;height:100%;border-radius:0;background:linear-gradient(90deg,#5C307D 0%,#bda5cf 100%);box-shadow:0 2px 8px rgba(92,48,125,.22)}
 .occupied-bar span,.occupied-bar:hover span{color:#fff;text-shadow:0 1px 2px rgba(45,22,62,.45)}
+
+/* Compact responsive classroom timeline without horizontal scrolling. */
+.grid-wrap{overflow-x:hidden}
+.room-timeline-grid{min-width:0}
+.room-timeline-header,.room-period-footer{grid-template-columns:158px minmax(0,1fr)}
+.room-floor-group{grid-template-columns:48px minmax(0,1fr)}
+.floor-rows .room-timeline-row{grid-template-columns:110px minmax(0,1fr)}
+.time-track span{font-size:13px;font-weight:650}
+.period-label{font-size:18px;font-weight:750}

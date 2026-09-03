@@ -28,8 +28,10 @@ function render(payload) {
   const toMinutes = value => { const [hour, minute] = value.split(":").map(Number); return hour * 60 + minute; };
   const ranges = periods.map(period => period.split("-").map(toMinutes));
   const position = minute => `${Math.max(0, Math.min(100, ((minute - startMinutes) / (endMinutes - startMinutes)) * 100))}%`;
-  const hours = Array.from({length: 17}, (_, index) => index + 7);
-  const timeScale = hours.map(hour => `<span style="left:${position(hour * 60)}">${String(hour).padStart(2, "0")}:00</span>`).join("");
+  const afternoonStart = ranges[5]?.[0] || 14 * 60;
+  const afternoonEnd = ranges[8]?.[1] || 17 * 60 + 40;
+  const keyTimes = [8 * 60, 12 * 60, afternoonStart, afternoonEnd, 18 * 60 + 30, 21 * 60 + 40].filter((value, index, values) => values.indexOf(value) === index);
+  const timeScale = keyTimes.map(minute => `<span style="left:${position(minute)}">${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}</span>`).join("");
   const periodLines = ranges.map(([start], index) => `<i class="period-line ${index > 0 && index % 2 === 1 ? "period-pair-break" : ""}" style="left:${position(start)}"></i>`).join("");
   const periodLabels = ranges.map(([start, end], index) => `<span class="period-label ${index % 2 === 1 ? "period-label-alt" : ""}" style="left:${position((start + end) / 2)}">${index + 1}</span>`).join("");
   const rows = rooms.map((room, index) => {

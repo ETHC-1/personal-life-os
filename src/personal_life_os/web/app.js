@@ -98,8 +98,10 @@ function renderClassroomTimeline() {
   const toMinutes = value => { const [hour, minute] = value.split(":").map(Number); return hour * 60 + minute; };
   const ranges = roomPeriods.map(period => period.split("-").map(toMinutes));
   const position = minute => `${Math.max(0, Math.min(100, ((minute - timelineStart) / timelineMinutes) * 100))}%`;
-  const keyTimes = Array.from({ length: 17 }, (_, index) => index + 7);
-  const timeScale = keyTimes.map(hour => `<span style="left:${position(hour * 60)}">${String(hour).padStart(2, "0")}:00</span>`).join("");
+  const afternoonStart = ranges[5]?.[0] || 14 * 60;
+  const afternoonEnd = ranges[8]?.[1] || 17 * 60 + 40;
+  const keyTimes = [8 * 60, 12 * 60, afternoonStart, afternoonEnd, 18 * 60 + 30, 21 * 60 + 40].filter((value, index, values) => values.indexOf(value) === index);
+  const timeScale = keyTimes.map(minute => `<span style="left:${position(minute)}">${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}</span>`).join("");
   const periodLines = ranges.map(([start], index) => `<i class="period-line ${index > 0 && index % 2 === 1 ? "period-pair-break" : ""}" style="left:${position(start)}"></i>`).join("");
   const periodLabels = ranges.map(([start, end], index) => `<span class="period-label ${index % 2 === 1 ? "period-label-alt" : ""}" style="left:${position((start + end) / 2)}">${index + 1}</span>`).join("");
   const roomRows = eastTeachingRooms.map((room, index) => {
@@ -121,10 +123,17 @@ function renderClassroomTimeline() {
       const width = Number(position(end).replace("%", "")) - Number(position(start).replace("%", ""));
       return `<b class="occupied-bar" style="left:${position(start)};width:${width}%" title="${room} · ${label} · 有课" aria-label="${room}，${label}，有课"><span>${label}</span></b>`;
     }).join("");
+    return `<div class="room-timeline-row"><div class="room-name"><span>${index + 1}教室</span></div><div class="room-track">${periodLines}${bars}</div></div>`;
+  });
+  const floorGroups = [];
+  roomRows.forEach((row, index) => {
     const floor = index < 4 ? 1 : Math.floor((index - 4) / 5) + 2;
-    return `<div class="room-timeline-row"><div class="room-name"><span class="room-floor">${floor}层</span><span>${room}</span></div><div class="room-track">${periodLines}${bars}</div></div>`;
-  }).join("");
-  target.innerHTML = `<div class="room-timeline-grid"><div class="room-timeline-header"><div class="room-name">教室</div><div class="time-track">${timeScale}</div></div>${roomRows}<div class="room-period-footer"><div class="room-name">课时</div><div class="time-track">${periodLabels}</div></div></div>`;
+    let group = floorGroups[floorGroups.length - 1];
+    if (!group || group.floor !== floor) { group = { floor, rows: [] }; floorGroups.push(group); }
+    group.rows.push(row);
+  });
+  const groupedRows = floorGroups.map(group => `<div class="room-floor-group"><div class="floor-label">${group.floor}层</div><div class="floor-rows">${group.rows.join("")}</div></div>`).join("");
+  target.innerHTML = `<div class="room-timeline-grid"><div class="room-timeline-header"><div class="room-name building-heading"><span>建筑状态</span><strong>东教学楼</strong></div><div class="time-track">${timeScale}</div></div>${groupedRows}<div class="room-period-footer"><div class="room-name">课时</div><div class="time-track">${periodLabels}</div></div></div>`;
 }
 async function loadCourses() {
   const error = document.querySelector("#error-banner"); error.hidden = true;
