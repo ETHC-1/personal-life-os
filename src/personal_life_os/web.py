@@ -24,6 +24,7 @@ from .courses.school import (
     fetch_courses_and_classroom_usage,
 )
 from .courses.storage import FinalScheduleStore
+from .courses.periods import periods_payload
 from .system_time import read_system_time
 from .todos import TodoItem, TodoPriority, TodoService, TodoStore
 
@@ -253,6 +254,15 @@ class WebHandler(SimpleHTTPRequestHandler):
                 self._json(read_system_time(parse_qs(parsed.query).get("timezone", [None])[0]))
             except ValueError as error:
                 self._json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
+            return
+        if parsed.path == "/api/periods":
+            try:
+                from urllib.parse import parse_qs
+                value = parse_qs(parsed.query).get("date", [None])[0]
+                query_date = date.fromisoformat(value) if value else datetime.now().date()
+                self._json(periods_payload(query_date))
+            except (TypeError, ValueError) as error:
+                self._json({"error": f"作息日期无效：{error}"}, HTTPStatus.BAD_REQUEST)
             return
         if parsed.path == "/api/overview":
             try:

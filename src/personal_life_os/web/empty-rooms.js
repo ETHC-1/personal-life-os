@@ -1,4 +1,5 @@
-const periods = ["08:00", "08:50", "09:50", "10:40", "11:20", "14:00", "14:50", "15:40", "16:30", "18:30", "19:20", "20:10", "21:00"];
+const defaultPeriods = ["08:00", "08:50", "09:50", "10:40", "11:20", "14:00", "14:50", "15:40", "16:30", "18:30", "19:20", "20:10", "21:00"];
+let periods = defaultPeriods;
 const fallbackRooms = Array.from({ length: 19 }, (_, index) => `东教学楼${index + 1}教室`);
 let selectedDate = new URLSearchParams(location.search).get("date");
 let currentPayload = null;
@@ -35,6 +36,13 @@ async function load() {
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || "读取失败");
     render(payload);
+    if (selectedDate) {
+      const periodsResponse = await fetch(`/api/periods?date=${encodeURIComponent(selectedDate)}`, {cache: "no-store"});
+      const periodsPayload = await periodsResponse.json();
+      if (!periodsResponse.ok) throw new Error(periodsPayload.error || "作息读取失败");
+      periods = (periodsPayload.periods || []).map(item => item.start);
+      render(payload);
+    }
   } catch (error) {
     document.querySelector("#status-dot").className = "error";
     document.querySelector("#status").textContent = "读取失败";

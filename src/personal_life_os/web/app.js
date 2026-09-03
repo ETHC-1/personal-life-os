@@ -2,7 +2,8 @@ const state = { courses: [], calendarEvents: [], todos: [], selectedDate: new Da
 let editingCalendarId = null;
 let editingTodoId = null;
 const weekdayNames = ["一", "二", "三", "四", "五", "六", "日"];
-const roomPeriods = ["08:00-08:40", "08:50-09:30", "09:50-10:30", "10:40-11:20", "11:20-12:00", "14:00-14:40", "14:50-15:30", "15:40-16:20", "16:30-17:10", "18:30-19:10", "19:20-20:00", "20:10-20:50", "21:00-21:40"];
+const defaultRoomPeriods = ["08:00-08:40", "08:50-09:30", "09:50-10:30", "10:40-11:20", "11:20-12:00", "14:00-14:40", "14:50-15:30", "15:40-16:20", "16:30-17:10", "18:30-19:10", "19:20-20:00", "20:10-20:50", "21:00-21:40"];
+let roomPeriods = defaultRoomPeriods;
 const eastTeachingRooms = Array.from({ length: 19 }, (_, index) => `东教学楼${index + 1}教室`);
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", { month: "long", day: "numeric", weekday: "short" });
 
@@ -90,7 +91,7 @@ function renderClassroomTimeline() {
   const dates = Object.keys(state.classroomUsageByDate); if (!dates.length) { target.innerHTML = `<div class="empty-state">完成一次校园网抓取后，这里会显示 1—19 教室的时间进度。</div>`; document.querySelector("#room-date-buttons").innerHTML = ""; return; }
   if (!state.roomViewDate || !state.classroomUsageByDate[state.roomViewDate]) state.roomViewDate = dates[0];
   document.querySelector("#room-date-buttons").innerHTML = dates.map((value, index) => `<button class="room-date-button ${value === state.roomViewDate ? "active" : ""}" data-date="${value}">${index === 0 ? "今天" : "明天"}<small>${value.slice(5)}</small></button>`).join("");
-  document.querySelectorAll(".room-date-button").forEach(button => button.onclick = () => { state.roomViewDate = button.dataset.date; renderClassroomTimeline(); });
+  document.querySelectorAll(".room-date-button").forEach(button => button.onclick = async () => { state.roomViewDate = button.dataset.date; await loadRoomPeriods(state.roomViewDate); renderClassroomTimeline(); });
   const normalizeRoom = value => String(value || "").replace(/\s+/g, "");
   const usage = new Map((state.classroomUsageByDate[state.roomViewDate].usage || []).map(item => [normalizeRoom(item.room), new Set(item.occupied_periods || [])]));
   const timelineStart = 6 * 60; const timelineEnd = 24 * 60; const timelineMinutes = timelineEnd - timelineStart;
@@ -137,14 +138,24 @@ async function loadClassroomUsage() {
     const response = await fetch("/api/empty-rooms", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
-    if (payload.source === "local-bridge" && Object.keys(payload.classroom_usage_by_date || {}).length) {
+    if (Object.keys(payload.classroom_usage_by_date || {}).length) {
       state.classroomUsageByDate = payload.classroom_usage_by_date;
       state.roomViewDate = Object.keys(state.classroomUsageByDate)[0];
     }
+    await loadRoomPeriods(state.roomViewDate);
     renderClassroomTimeline();
   } catch (reason) {
     console.warn("无法读取本地空教室桥接数据", reason);
   }
+}
+async function loadRoomPeriods(queryDate) {
+  if (!queryDate) return;
+  try {
+    const response = await fetch(`/api/periods?date=${encodeURIComponent(queryDate)}`, { cache: "no-store" });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "作息读取失败");
+    roomPeriods = (payload.periods || []).map(item => `${item.start}-${item.end}`);
+  } catch (reason) { roomPeriods = defaultRoomPeriods; console.warn(reason); }
 }
 function setImportStatus(message, isError = false) { const element = document.querySelector("#import-status"); element.textContent = message; element.hidden = false; element.className = `import-status ${isError ? "error" : ""}`; }
 function setImportBusy(button, busy) { button.disabled = busy; button.textContent = busy ? "导入中，请稍候…" : button.dataset.label; }

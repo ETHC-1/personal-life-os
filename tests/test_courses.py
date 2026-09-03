@@ -12,6 +12,7 @@ from personal_life_os.courses.parser import parse_course_table
 from personal_life_os.courses.service import CourseCatalog
 from personal_life_os.courses.storage import FinalScheduleStore
 from personal_life_os.courses.importers import parse_schedule_json
+from personal_life_os.courses.periods import periods_for
 from personal_life_os.web import _empty_room_payload
 
 
@@ -22,6 +23,12 @@ HTML = """
 
 
 class CourseTests(unittest.TestCase):
+    def test_summer_afternoon_periods_shift_and_regular_schedule_restores(self):
+        self.assertEqual(periods_for(date(2026, 5, 1))[5:9], (("14:30", "15:10"), ("15:20", "16:00"), ("16:10", "16:50"), ("17:00", "17:40")))
+        self.assertEqual(periods_for(date(2026, 7, 5))[5:9], periods_for(date(2026, 5, 1))[5:9])
+        self.assertEqual(periods_for(date(2026, 7, 6))[5], ("14:00", "14:40"))
+        self.assertEqual(periods_for(date(2026, 8, 31))[5], ("14:00", "14:40"))
+
     def test_parse_common_course_table(self):
         courses = parse_course_table(HTML, source="demo", period_times={1: (time(8), time(8, 45)), 2: (time(8, 55), time(9, 40))})
         self.assertEqual(courses[0].name, "高等数学")
