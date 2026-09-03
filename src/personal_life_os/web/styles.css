@@ -28,3 +28,13 @@ html,body{min-height:100%;background:#eaf1f8}body{overflow-x:hidden;border-radiu
 .room-period-footer{background:#faf7fc;border-top:1px solid #d9cce3;position:sticky;bottom:0;z-index:1}.room-period-footer .time-track{height:59px}
 .occupied-bar{top:9px;height:28px;border-radius:6px;background:linear-gradient(90deg,#2878d4 0%,#5C307D 100%);box-shadow:0 3px 9px rgba(92,48,125,.25)}
 .app-titlebar,.sidebar{background:#fff}.app-shell,.main-content{background:#f8f4fa}.window-logo,.brand-mark{background:linear-gradient(135deg,#5C307D,#8e63a7);box-shadow:0 6px 15px rgba(92,48,125,.22)}.hero-card{background:linear-gradient(135deg,#5C307D 0%,#9871b0 100%)}.button.primary,.week-day.active{background:#5C307D;box-shadow:0 7px 16px rgba(92,48,125,.22)}.button.secondary{background:#fff;color:#5C307D}.avatar{background:linear-gradient(135deg,#f0e7f5,#d9c5e5);color:#5C307D}.day-column{background:#f4eef8;border-color:#e4d8ec}.day-column.today{background:#f0e7f5;border-color:#d9c6e5}.course-chip{background:#eee3f5;border-left-color:#5C307D}.course-chip:nth-child(2n){background:#f4e8ef;border-left-color:#8a568f}.pill{background:#f0e7f5;color:#5C307D}.notice{background:#f0e7f5;color:#6c4b7d}.room-timeline{border-color:#e2d7e9}.room-timeline-header{background:#f5eff8}
+/* Classroom timeline refinements */
+.room-timeline-header,.room-period-footer{grid-template-columns:209px minmax(975px,1fr)}
+.room-timeline-header .room-name,.room-period-footer .room-name{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px}
+.building-heading strong{font-size:13px;color:#5C307D}
+.room-floor-group{display:grid;grid-template-columns:64px 1fr;border-bottom:1px solid #eee7f2}
+.floor-label{display:flex;align-items:center;justify-content:center;background:#f5eff8;color:#5C307D;font-size:12px;font-weight:700;border-right:1px solid #d9cce3}
+.floor-rows{min-width:0}.floor-rows .room-timeline-row{grid-template-columns:145px minmax(975px,1fr)}
+.room-floor-group .room-timeline-row:last-child{border-bottom:0}
+.period-label{top:18px;font-size:14px}.occupied-bar{top:0;height:100%;border-radius:0;background:linear-gradient(90deg,#5C307D 0%,#bda5cf 100%);box-shadow:0 2px 8px rgba(92,48,125,.22)}
+.occupied-bar span,.occupied-bar:hover span{color:#fff;text-shadow:0 1px 2px rgba(45,22,62,.45)}

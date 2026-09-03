@@ -100,8 +100,8 @@ function renderClassroomTimeline() {
   const position = minute => `${Math.max(0, Math.min(100, ((minute - timelineStart) / timelineMinutes) * 100))}%`;
   const keyTimes = Array.from({ length: 17 }, (_, index) => index + 7);
   const timeScale = keyTimes.map(hour => `<span style="left:${position(hour * 60)}">${String(hour).padStart(2, "0")}:00</span>`).join("");
-  const periodLines = ranges.map(([start], index) => `<i class="period-line ${index > 0 && index % 2 === 0 ? "period-pair-break" : ""}" style="left:${position(start)}"></i>`).join("");
-  const periodLabels = ranges.map(([start, end], index) => `<span class="period-label ${index % 2 === 1 ? "period-label-alt" : ""}" style="left:${position((start + end) / 2)}">第${index + 1}节<br><small>${roomPeriods[index]}</small></span>`).join("");
+  const periodLines = ranges.map(([start], index) => `<i class="period-line ${index > 0 && index % 2 === 1 ? "period-pair-break" : ""}" style="left:${position(start)}"></i>`).join("");
+  const periodLabels = ranges.map(([start, end], index) => `<span class="period-label ${index % 2 === 1 ? "period-label-alt" : ""}" style="left:${position((start + end) / 2)}">${index + 1}</span>`).join("");
   const roomRows = eastTeachingRooms.map((room, index) => {
     const occupied = [...(usage.get(normalizeRoom(room)) || new Set())]
       .filter(period => period >= 1 && period <= ranges.length)
