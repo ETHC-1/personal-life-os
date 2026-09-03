@@ -2,7 +2,7 @@ const state = { courses: [], calendarEvents: [], todos: [], selectedDate: new Da
 let editingCalendarId = null;
 let editingTodoId = null;
 const weekdayNames = ["一", "二", "三", "四", "五", "六", "日"];
-const defaultRoomPeriods = ["08:00-08:40", "08:50-09:30", "09:50-10:30", "10:40-11:20", "11:20-12:00", "14:00-14:40", "14:50-15:30", "15:40-16:20", "16:30-17:10", "18:30-19:10", "19:20-20:00", "20:10-20:50", "21:00-21:40"];
+const defaultRoomPeriods = ["08:00-08:40", "08:50-09:30", "09:50-10:30", "10:40-11:20", "11:20-12:00", "14:30-15:10", "15:20-16:00", "16:10-16:50", "17:00-17:40", "18:30-19:10", "19:20-20:00", "20:10-20:50", "21:00-21:40"];
 let roomPeriods = defaultRoomPeriods;
 const eastTeachingRooms = Array.from({ length: 19 }, (_, index) => `东教学楼${index + 1}教室`);
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", { month: "long", day: "numeric", weekday: "short" });
