@@ -94,14 +94,15 @@ function renderClassroomTimeline() {
   document.querySelectorAll(".room-date-button").forEach(button => button.onclick = async () => { state.roomViewDate = button.dataset.date; await loadRoomPeriods(state.roomViewDate); renderClassroomTimeline(); });
   const normalizeRoom = value => String(value || "").replace(/\s+/g, "");
   const usage = new Map((state.classroomUsageByDate[state.roomViewDate].usage || []).map(item => [normalizeRoom(item.room), new Set(item.occupied_periods || [])]));
-  const timelineStart = 6 * 60; const timelineEnd = 24 * 60; const timelineMinutes = timelineEnd - timelineStart;
+  const timelineStart = 7 * 60; const timelineEnd = 23 * 60; const timelineMinutes = timelineEnd - timelineStart;
   const toMinutes = value => { const [hour, minute] = value.split(":").map(Number); return hour * 60 + minute; };
   const ranges = roomPeriods.map(period => period.split("-").map(toMinutes));
   const position = minute => `${Math.max(0, Math.min(100, ((minute - timelineStart) / timelineMinutes) * 100))}%`;
-  const keyTimes = [6, 8, 10, 12, 14, 16, 18, 20, 22, 24];
+  const keyTimes = Array.from({ length: 17 }, (_, index) => index + 7);
   const timeScale = keyTimes.map(hour => `<span style="left:${position(hour * 60)}">${String(hour).padStart(2, "0")}:00</span>`).join("");
-  const periodLines = ranges.map(([start]) => `<i style="left:${position(start)}"></i>`).join("");
-  const roomRows = eastTeachingRooms.map(room => {
+  const periodLines = ranges.map(([start], index) => `<i class="period-line ${index > 0 && index % 2 === 0 ? "period-pair-break" : ""}" style="left:${position(start)}"></i>`).join("");
+  const periodLabels = ranges.map(([start, end], index) => `<span class="period-label ${index % 2 === 1 ? "period-label-alt" : ""}" style="left:${position((start + end) / 2)}">第${index + 1}节<br><small>${roomPeriods[index]}</small></span>`).join("");
+  const roomRows = eastTeachingRooms.map((room, index) => {
     const occupied = [...(usage.get(normalizeRoom(room)) || new Set())]
       .filter(period => period >= 1 && period <= ranges.length)
       .sort((a, b) => a - b);
@@ -120,9 +121,10 @@ function renderClassroomTimeline() {
       const width = Number(position(end).replace("%", "")) - Number(position(start).replace("%", ""));
       return `<b class="occupied-bar" style="left:${position(start)};width:${width}%" title="${room} · ${label} · 有课" aria-label="${room}，${label}，有课"><span>${label}</span></b>`;
     }).join("");
-    return `<div class="room-timeline-row"><div class="room-name">${room}</div><div class="room-track">${periodLines}${bars}</div></div>`;
+    const floor = index < 4 ? 1 : Math.floor((index - 4) / 5) + 2;
+    return `<div class="room-timeline-row"><div class="room-name"><span class="room-floor">${floor}层</span><span>${room}</span></div><div class="room-track">${periodLines}${bars}</div></div>`;
   }).join("");
-  target.innerHTML = `<div class="room-timeline-grid"><div class="room-timeline-header"><div class="room-name">教室</div><div class="time-track">${timeScale}${periodLines}</div></div>${roomRows}</div>`;
+  target.innerHTML = `<div class="room-timeline-grid"><div class="room-timeline-header"><div class="room-name">教室</div><div class="time-track">${timeScale}</div></div>${roomRows}<div class="room-period-footer"><div class="room-name">课时</div><div class="time-track">${periodLabels}</div></div></div>`;
 }
 async function loadCourses() {
   const error = document.querySelector("#error-banner"); error.hidden = true;

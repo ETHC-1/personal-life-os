@@ -1,4 +1,4 @@
-const defaultPeriods = ["08:00", "08:50", "09:50", "10:40", "11:20", "14:00", "14:50", "15:40", "16:30", "18:30", "19:20", "20:10", "21:00"];
+const defaultPeriods = ["08:00-08:40", "08:50-09:30", "09:50-10:30", "10:40-11:20", "11:20-12:00", "14:00-14:40", "14:50-15:30", "15:40-16:20", "16:30-17:10", "18:30-19:10", "19:20-20:00", "20:10-20:50", "21:00-21:40"];
 let periods = defaultPeriods;
 const fallbackRooms = Array.from({ length: 19 }, (_, index) => `东教学楼${index + 1}教室`);
 let selectedDate = new URLSearchParams(location.search).get("date");
@@ -24,9 +24,22 @@ function render(payload) {
   const usage = new Map((day.usage || []).map(item => [item.room, new Set(item.occupied_periods || [])]));
   const rooms = day.rooms?.length ? day.rooms : fallbackRooms;
   document.querySelector("#free-count").textContent = rooms.filter(room => !(usage.get(room)?.size)).length;
-  const head = periods.map((time, index) => `<th>第${index + 1}节<br><small>${time}</small></th>`).join("");
-  const rows = rooms.map(room => `<tr><th>${escapeHtml(room)}</th>${periods.map((_, index) => `<td class="${usage.get(room)?.has(index + 1) ? "busy" : "free"}">${usage.get(room)?.has(index + 1) ? "有课" : "空"}</td>`).join("")}</tr>`).join("");
-  document.querySelector("#grid").innerHTML = `<table><thead><tr><th>教室</th>${head}</tr></thead><tbody>${rows}</tbody></table>`;
+  const startMinutes = 7 * 60; const endMinutes = 23 * 60;
+  const toMinutes = value => { const [hour, minute] = value.split(":").map(Number); return hour * 60 + minute; };
+  const ranges = periods.map(period => period.split("-").map(toMinutes));
+  const position = minute => `${Math.max(0, Math.min(100, ((minute - startMinutes) / (endMinutes - startMinutes)) * 100))}%`;
+  const hours = Array.from({length: 17}, (_, index) => index + 7);
+  const timeScale = hours.map(hour => `<span style="left:${position(hour * 60)}">${String(hour).padStart(2, "0")}:00</span>`).join("");
+  const periodLines = ranges.map(([start], index) => `<i class="period-line ${index > 0 && index % 2 === 0 ? "period-pair-break" : ""}" style="left:${position(start)}"></i>`).join("");
+  const periodLabels = ranges.map(([start, end], index) => `<span class="period-label ${index % 2 === 1 ? "period-label-alt" : ""}" style="left:${position((start + end) / 2)}">第${index + 1}节<br><small>${periods[index]}</small></span>`).join("");
+  const rows = rooms.map((room, index) => {
+    const occupied = [...(usage.get(room) || new Set())].filter(period => period >= 1 && period <= ranges.length).sort((a, b) => a - b);
+    const groups = occupied.reduce((result, period) => { const last = result[result.length - 1]; if (last && period === last[last.length - 1] + 1) last.push(period); else result.push([period]); return result; }, []);
+    const bars = groups.map(group => { const [start] = ranges[group[0] - 1]; const [, end] = ranges[group[group.length - 1] - 1]; const label = group.length === 1 ? periods[group[0] - 1] : `${periods[group[0] - 1].split("-")[0]}-${periods[group[group.length - 1] - 1].split("-")[1]}`; const width = Number(position(end).replace("%", "")) - Number(position(start).replace("%", "")); return `<b class="occupied-bar" style="left:${position(start)};width:${width}%" title="${escapeHtml(room)} · ${label} · 有课"><span>${label}</span></b>`; }).join("");
+    const floor = index < 4 ? 1 : Math.floor((index - 4) / 5) + 2;
+    return `<div class="room-timeline-row"><div class="room-name"><span class="room-floor">${floor}层</span><span>${escapeHtml(room)}</span></div><div class="room-track">${periodLines}${bars}</div></div>`;
+  }).join("");
+  document.querySelector("#grid").innerHTML = `<div class="room-timeline-grid"><div class="room-timeline-header"><div class="room-name">教室</div><div class="time-track">${timeScale}</div></div>${rows}<div class="room-period-footer"><div class="room-name">课时</div><div class="time-track">${periodLabels}</div></div></div>`;
 }
 
 async function load() {
@@ -40,7 +53,7 @@ async function load() {
       const periodsResponse = await fetch(`/api/periods?date=${encodeURIComponent(selectedDate)}`, {cache: "no-store"});
       const periodsPayload = await periodsResponse.json();
       if (!periodsResponse.ok) throw new Error(periodsPayload.error || "作息读取失败");
-      periods = (periodsPayload.periods || []).map(item => item.start);
+      periods = (periodsPayload.periods || []).map(item => `${item.start}-${item.end}`);
       render(payload);
     }
   } catch (error) {
