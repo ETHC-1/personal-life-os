@@ -32,11 +32,12 @@ function render(payload) {
   const afternoonEnd = ranges[8]?.[1] || 17 * 60 + 40;
   const keyTimes = [8 * 60, 12 * 60, afternoonStart, afternoonEnd, 18 * 60 + 30, 21 * 60 + 40].filter((value, index, values) => values.indexOf(value) === index);
   const timeScale = keyTimes.map(minute => `<span style="left:${position(minute)}">${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}</span>`).join("");
-  const periodLines = ranges.map(([start], index) => `<i class="period-line ${index > 0 && index % 2 === 1 ? "period-pair-break" : ""}" style="left:${position(start)}"></i>`).join("");
+  const boundaryClass = index => index === 0 ? "period-line-deep" : ([1, 3, 6, 8, 10, 12].includes(index) ? "period-line-light" : "period-line-deep");
+  const periodLines = ranges.map(([start], index) => `<i class="period-line ${boundaryClass(index)}" style="left:${position(start)}"></i>`).join("") + `<i class="period-line lunch-break-line" style="left:${position(ranges[4]?.[1] || 12 * 60)}"></i>`;
   const periodLabels = ranges.map(([start, end], index) => `<span class="period-label ${index % 2 === 1 ? "period-label-alt" : ""}" style="left:${position((start + end) / 2)}">${index + 1}</span>`).join("");
   const rows = rooms.map((room, index) => {
     const occupied = [...(usage.get(room) || new Set())].filter(period => period >= 1 && period <= ranges.length).sort((a, b) => a - b);
-    const groups = occupied.reduce((result, period) => { const last = result[result.length - 1]; if (last && period === last[last.length - 1] + 1) last.push(period); else result.push([period]); return result; }, []);
+    const groups = occupied.reduce((result, period) => { const last = result[result.length - 1]; const previous = last && ranges[period - 2]; if (last && period === last[last.length - 1] + 1 && previous?.[1] === ranges[period - 1]?.[0]) last.push(period); else result.push([period]); return result; }, []);
     const bars = groups.map(group => { const [start] = ranges[group[0] - 1]; const [, end] = ranges[group[group.length - 1] - 1]; const label = group.length === 1 ? periods[group[0] - 1] : `${periods[group[0] - 1].split("-")[0]}-${periods[group[group.length - 1] - 1].split("-")[1]}`; const width = Number(position(end).replace("%", "")) - Number(position(start).replace("%", "")); return `<b class="occupied-bar" style="left:${position(start)};width:${width}%" title="${escapeHtml(room)} · ${label} · 有课"><span>${label}</span></b>`; }).join("");
     return `<div class="room-timeline-row"><div class="room-name"><span>${index + 1}教室</span></div><div class="room-track">${periodLines}${bars}</div></div>`;
   });
