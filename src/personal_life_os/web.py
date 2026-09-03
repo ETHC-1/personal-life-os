@@ -124,32 +124,53 @@ def _reminder_payload(calendar_path: Path, query: dict[str, list[str]]) -> dict:
 def _empty_room_payload(path: Path) -> dict:
     """Read the bridge's sanitized snapshot without exposing raw proxy data."""
     if not path.exists():
-        return {"classroom_usage_by_date": {}, "updated_at": None, "source": "local-bridge"}
+        return {"classroom_usage_by_date": {}, "updated_at": None, "building": None, "status": "waiting"}
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError("空教室快照格式无效")
+
+    def safe_usage(items: object) -> list[dict]:
+        if not isinstance(items, list):
+            return []
+        sanitized = []
+        for item in items:
+            if not isinstance(item, dict) or not isinstance(item.get("room"), str):
+                continue
+            room = item["room"].strip()
+            periods = item.get("occupied_periods", [])
+            if not room or not isinstance(periods, list):
+                continue
+            sanitized.append({
+                "room": room,
+                "occupied_periods": sorted(set(
+                    period for period in periods
+                    if isinstance(period, int) and not isinstance(period, bool) and 1 <= period <= 13
+                )),
+            })
+        return sanitized
+
     query_date = str(payload.get("date", "")).strip()
     usage = payload.get("usage", [])
     if not query_date and isinstance(payload.get("days"), list):
         by_date = {}
         for day in payload["days"]:
             if isinstance(day, dict) and day.get("date") and isinstance(day.get("usage"), list):
-                by_date[str(day["date"])] = {"rooms": [], "usage": day["usage"]}
-        return {"classroom_usage_by_date": by_date, "updated_at": payload.get("updated_at"), "source": "local-direct"}
+                day_date = date.fromisoformat(str(day["date"]))
+                by_date[day_date.isoformat()] = {"rooms": [], "usage": safe_usage(day["usage"])}
+        return {
+            "classroom_usage_by_date": by_date,
+            "updated_at": payload.get("updated_at") or payload.get("generated_at"),
+            "building": payload.get("building") or payload.get("building_name"),
+            "status": "ready" if by_date else "waiting",
+        }
     if not query_date or not isinstance(usage, list):
         raise ValueError("空教室快照缺少日期或使用记录")
-    safe_usage = []
-    for item in usage:
-        if not isinstance(item, dict) or not isinstance(item.get("room"), str):
-            continue
-        periods = item.get("occupied_periods", [])
-        if not isinstance(periods, list):
-            continue
-        safe_usage.append({"room": item["room"], "occupied_periods": [period for period in periods if isinstance(period, int) and 1 <= period <= 13]})
+    query_date = date.fromisoformat(query_date).isoformat()
     return {
-        "classroom_usage_by_date": {query_date: {"rooms": [], "usage": safe_usage}},
+        "classroom_usage_by_date": {query_date: {"rooms": [], "usage": safe_usage(usage)}},
         "updated_at": payload.get("updated_at"),
-        "source": "local-bridge",
+        "building": payload.get("building"),
+        "status": "ready",
     }
 
 

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1765bf">
+  <title>空教室查询</title>
+  <link rel="stylesheet" href="/empty-rooms.css?v=20260903">
+</head>
+<body>
+  <main>
+    <header>
+      <div><p class="eyebrow">教室实时快照</p><h1>空教室查询</h1><p id="building">正在读取楼栋…</p></div>
+      <button id="refresh" type="button">刷新</button>
+    </header>
+    <section class="status-card" aria-live="polite">
+      <span id="status-dot"></span><strong id="status">正在加载…</strong><small id="updated-at"></small>
+    </section>
+    <nav id="dates" aria-label="查询日期"></nav>
+    <section class="summary"><strong id="free-count">—</strong><span>间全天空闲</span><small>蓝色格表示该节有课</small></section>
+    <section id="grid" class="grid-wrap"><div class="message">正在读取空教室数据…</div></section>
+    <footer>页面每 5 分钟自动刷新 · <a href="/api/empty-rooms">JSON API</a></footer>
+  </main>
+  <script src="/empty-rooms.js?v=20260903"></script>
+</body>
+</html>

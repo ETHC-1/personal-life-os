@@ -66,7 +66,18 @@ sudo systemctl start personal-life-os-empty-room.service
 
 ## 4. 网站访问
 
-Web 服务仅监听 `127.0.0.1:8000`，建议通过 Nginx 配置域名和 HTTPS 反向代理，不直接暴露 Python 开发服务器。
+Web 服务仅监听 `127.0.0.1:8000`。独立的设备查询页是 `/empty-rooms.html`，数据接口是 `/api/empty-rooms`。查询页每 5 分钟自动刷新，也可以用 `?date=YYYY-MM-DD` 指定日期。
+
+先安装项目内置的 Nginx 反向代理模板：
+
+```bash
+sudo cp deploy/ubuntu/nginx-personal-life-os.conf /etc/nginx/sites-available/personal-life-os
+sudo ln -s /etc/nginx/sites-available/personal-life-os /etc/nginx/sites-enabled/personal-life-os
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+配置域名后，应使用 Certbot 或云平台入口启用 HTTPS。如果服务可从公网访问，还应在 Nginx 启用身份验证，避免教室与个人日程接口被公开暴露。模板中已预留 `auth_basic` 配置。
 
 ## 安全要求
 

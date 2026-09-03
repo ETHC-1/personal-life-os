@@ -17,3 +17,6 @@ browser = ["playwright>=1.45,<2"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+personal_life_os = ["web/*.html", "web/*.css", "web/*.js"]

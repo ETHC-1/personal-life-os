@@ -144,6 +144,23 @@ class CourseTests(unittest.TestCase):
         self.assertEqual(payload["classroom_usage_by_date"]["2026-09-01"]["usage"][0]["occupied_periods"], [3])
         self.assertNotIn("private", json.dumps(payload, ensure_ascii=False))
 
+    def test_web_sanitizes_multi_day_direct_snapshot(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "empty-rooms.json"
+            path.write_text(json.dumps({
+                "updated_at": "2026-09-01T10:00:00+08:00",
+                "building": "中山校区.东教学楼",
+                "days": [{"date": "2026-09-01", "usage": [{
+                    "room": "东教学楼5教室", "occupied_periods": [4, 3, 3, 14, True],
+                    "course_name": "private",
+                }]}],
+            }), encoding="utf-8")
+            payload = _empty_room_payload(path)
+        self.assertEqual(payload["status"], "ready")
+        self.assertEqual(payload["building"], "中山校区.东教学楼")
+        self.assertEqual(payload["classroom_usage_by_date"]["2026-09-01"]["usage"][0]["occupied_periods"], [3, 4])
+        self.assertNotIn("private", json.dumps(payload, ensure_ascii=False))
+
 
 if __name__ == "__main__":
     unittest.main()

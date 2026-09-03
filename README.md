@@ -160,6 +160,8 @@ Ubuntu 部署文件位于 [`deploy/ubuntu/`](deploy/ubuntu/)，包含 Web 服务
 
 详细步骤见 [Ubuntu 部署说明](deploy/ubuntu/README.md)。当前直接空教室抓取不需要微信浏览器或 Fiddler；如果教务会话过期，需要重新获取临时 Cookie/token，不应把它们写入仓库或日志。
 
+服务器启动后，可在 `/empty-rooms.html` 使用适合手机和平板的独立空教室页面，或让其他设备直接读取 `/api/empty-rooms` JSON 接口。公网部署必须在 Nginx 或云网关启用 HTTPS 和身份验证。
+
 网页端“校园网登录”面板现在可以填写楼栋信息，点击“登录一次并抓取两类信息”，在一次手动登录后同时读取课程和教室使用数据。命令行也可使用：
 
 ```text
