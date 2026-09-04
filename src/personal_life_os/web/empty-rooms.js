@@ -46,9 +46,9 @@ function render(payload) {
   const rows = rooms.map((room, index) => {
     const occupied = [...(usage.get(room) || new Set())].filter(period => period >= 1 && period <= ranges.length).sort((a, b) => a - b);
     const groups = occupied.reduce((result, period) => { const last = result[result.length - 1]; if (last && period === last[last.length - 1] + 1 && period !== 6) last.push(period); else result.push([period]); return result; }, []);
-    const bars = groups.map(group => { const [start] = ranges[group[0] - 1]; const [, end] = ranges[group[group.length - 1] - 1]; const label = group.length === 1 ? periods[group[0] - 1] : `${periods[group[0] - 1].split("-")[0]}-${periods[group[group.length - 1] - 1].split("-")[1]}`; const width = Number(position(end).replace("%", "")) - Number(position(start).replace("%", "")); return `<b class="occupied-bar" style="left:${position(start)};width:${width}%" title="${escapeHtml(room)} · ${label} · 有课"><span>${label}</span></b>`; }).join("");
+    const bars = groups.map(group => { const [start] = ranges[group[0] - 1]; const [, end] = ranges[group[group.length - 1] - 1]; const label = group.length === 1 ? periods[group[0] - 1] : `${periods[group[0] - 1].split("-")[0]}-${periods[group[group.length - 1] - 1].split("-")[1]}`; const width = Number(position(end).replace("%", "")) - Number(position(start).replace("%", "")); const long = end - start > 120; return `<b class="occupied-bar ${long ? "occupied-bar-long" : ""}" style="left:${position(start)};width:${width}%" title="${escapeHtml(room)} · ${label} · 有课"><span class="bar-label">${label}</span></b>`; }).join("");
     const displayRoom = isEast ? `${index + 1}教室` : room;
-    return `<div class="room-timeline-row"><div class="room-name"><span>${escapeHtml(displayRoom)}</span></div><div class="room-track">${periodLines}${bars}</div></div>`;
+    return `<div class="room-timeline-row"><div class="room-name"><span>${escapeHtml(displayRoom)}</span></div><div class="room-track"><i class="availability-bar"></i>${periodLines}${bars}</div></div>`;
   });
   const floorGroups = [];
   rows.forEach((row, index) => {
