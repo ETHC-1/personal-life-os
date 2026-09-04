@@ -199,4 +199,4 @@ course-import empty-room-poll --user-data-dir "D:\\personal-life-os-data\\wechat
 course-import empty-room-poll --user-data-dir "D:\\personal-life-os-data\\wechat-profile" --output "D:\\personal-life-os-data\\empty-rooms.json" --headless
 ```
 
-默认每天 06:00—21:00 每小时执行一次，并查询今天和明天。也可以通过环境变量 `HEBMU_WECHAT_LOGIN_URL` 临时提供微信授权回调链接；授权链接、Cookie 和 token 不应写入仓库或日志。云服务器必须能够运行持久化 Chromium；若学校强制微信 WebView，普通云端 Chromium 仍可能无法完成首次授权，此时应使用带远程桌面的浏览器环境或在本地授权后同步结果。
+默认每天 07:00 和 14:00 各执行一次，并查询今天和明天。也可以通过环境变量 `HEBMU_WECHAT_LOGIN_URL` 临时提供微信授权回调链接；授权链接、Cookie 和 token 不应写入仓库或日志。云服务器必须能够运行持久化 Chromium；若学校强制微信 WebView，普通云端 Chromium 仍可能无法完成首次授权，此时应使用带远程桌面的浏览器环境或在本地授权后同步结果。

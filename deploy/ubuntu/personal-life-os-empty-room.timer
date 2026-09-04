@@ -1,8 +1,8 @@
 [Unit]
-Description=Run Personal Life OS empty room fetch hourly during daytime
+Description=Run Personal Life OS empty room fetch at 07:00 and 14:00
 
 [Timer]
-OnCalendar=*-*-* 06..21:00:00
+OnCalendar=*-*-* 07,14:00:00
 Persistent=true
 Unit=personal-life-os-empty-room.service
 

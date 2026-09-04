@@ -57,7 +57,7 @@ systemctl status personal-life-os-empty-room.timer
 journalctl -u personal-life-os-empty-room.service -n 50 --no-pager
 ```
 
-定时器每天 06:00—21:00 执行一次，每次抓取今天和明天。凭证过期时服务会失败，但不会输出 Cookie/token；更新环境文件后执行：
+定时器每天 07:00 和 14:00 各执行一次，每次抓取今天和明天。凭证过期时服务会失败，但不会输出 Cookie/token；更新环境文件后执行：
 
 ```bash
 sudo systemctl restart personal-life-os-empty-room.timer
