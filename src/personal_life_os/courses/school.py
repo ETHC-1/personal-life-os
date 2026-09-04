@@ -198,11 +198,18 @@ def extract_classroom_usage(payload: dict[str, Any]) -> tuple[dict[str, Any], ..
     records = _find_named_records(payload, {"jszylist", "jsylist", "jsyzlist"}) or _classroom_records(payload)
     if not isinstance(records, list):
         raise ValueError("classroom response jsylist must be a list")
+    catalog_by_code = {
+        str(item.get("jxcddm")): str(item.get("jxcdmc")).strip()
+        for item in _find_named_records(payload, {"jxcdxxList", "jxcdxxlist"})
+        if item.get("jxcddm") is not None and isinstance(item.get("jxcdmc"), str) and item.get("jxcdmc").strip()
+    }
     usage: dict[str, set[int]] = {}
     for record in records:
         if not isinstance(record, dict):
             continue
         room = record.get("jxcdmc") or record.get("jsmc") or record.get("classroom")
+        if not isinstance(room, str) or not room.strip():
+            room = catalog_by_code.get(str(record.get("jxcddm")))
         if not isinstance(room, str) or not room.strip():
             continue
         raw_periods = str(record.get("jcdm2") or record.get("periods") or record.get("jcdm") or "")

@@ -147,11 +147,19 @@ class CourseTests(unittest.TestCase):
 
     def test_classroom_catalog_is_separate_from_usage_records(self):
         payload = {
-            "jszylist": [{"jxcdmc": "东教学楼19教室", "jcdm2": "10,11"}],
-            "jxcdxxList": [{"jxcdmc": f"东教学楼{i}教室"} for i in range(1, 20)],
+            "jszylist": [
+                {"jxcdmc": "东教学楼19教室", "jxcddm": "454", "jcdm2": "10,11"},
+                {"jxcdmc": "", "jxcddm": "436", "jcdm2": "10,11,12,13"},
+                {"jxcdmc": "", "jxcddm": "437", "jcdm2": "10,11,12,13"},
+                {"jxcdmc": "", "jxcddm": "438", "jcdm2": "10,11,12,13"},
+            ],
+            "jxcdxxList": [{"jxcddm": str(435 + i), "jxcdmc": f"东教学楼{i}教室"} for i in range(1, 20)],
         }
         self.assertEqual(len(extract_classroom_names(payload)), 19)
-        self.assertEqual(extract_classroom_usage(payload), ({"room": "东教学楼19教室", "occupied_periods": [10, 11]},))
+        usage = {item["room"]: item["occupied_periods"] for item in extract_classroom_usage(payload)}
+        self.assertEqual(len(usage), 4)
+        self.assertEqual(usage["东教学楼19教室"], [10, 11])
+        self.assertEqual(usage["东教学楼1教室"], [10, 11, 12, 13])
 
     def test_web_reads_sanitized_bridge_snapshot(self):
         with tempfile.TemporaryDirectory() as directory:
