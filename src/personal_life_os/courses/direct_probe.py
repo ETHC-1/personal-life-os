@@ -11,7 +11,28 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from .school import EmptyClassroomImporter, _find_token, extract_classroom_usage
+from .school import EmptyClassroomImporter, _find_token, extract_classroom_names, extract_classroom_usage
+
+DEFAULT_BUILDINGS: tuple[dict[str, str], ...] = (
+    {"campus": "中山校区", "name": "中山校区.学生活动中心", "code": "103985350"},
+    {"campus": "中山校区", "name": "中山校区.东教学楼", "code": "103966187"},
+    {"campus": "中山校区", "name": "中山校区.本部体育场地", "code": "103966184"},
+    {"campus": "中山校区", "name": "中山校区.PBL教室", "code": "103966205"},
+    {"campus": "中山校区", "name": "中山校区.本部实验室", "code": "103966190"},
+    {"campus": "中山校区", "name": "中山校区.本部外语教室", "code": "103966199"},
+    {"campus": "中山校区", "name": "中山校区.图书馆", "code": "103966182"},
+    {"campus": "中山校区", "name": "中山校区.主教学楼", "code": "103966209"},
+    {"campus": "中山校区", "name": "中山校区.科总楼", "code": "103985977"},
+    {"campus": "建华校区", "name": "建华校区.建华校区外语教室", "code": "103966176"},
+    {"campus": "建华校区", "name": "建华校区.东区实验中心", "code": "103966195"},
+    {"campus": "建华校区", "name": "建华校区.影像学院实验室", "code": "103966206"},
+    {"campus": "建华校区", "name": "建华校区.建华体育场", "code": "103982268"},
+    {"campus": "建华校区", "name": "建华校区.大教室", "code": "103966174"},
+    {"campus": "建华校区", "name": "建华校区.小教室", "code": "103966210"},
+    {"campus": "建华校区", "name": "建华校区.康复实训室", "code": "103982270"},
+    {"campus": "建华校区", "name": "建华校区.礼堂", "code": "104072736"},
+    {"campus": "建华校区", "name": "建华校区.中西医结合学院实验室", "code": "103982269"},
+)
 
 
 def _request(url: str, *, method: str, body: bytes | None, cookie: str, token: str | None = None,
@@ -72,13 +93,14 @@ class DirectEmptyRoomWorker:
     """Fetch classroom usage without a browser or proxy, using temporary env credentials."""
 
     def __init__(self, *, building_code: str, building_name: str, output_path: Path,
-                 timezone: str = "Asia/Shanghai") -> None:
+                 timezone: str = "Asia/Shanghai", buildings: tuple[dict[str, str], ...] | None = None) -> None:
         if not building_code.strip() or not building_name.strip():
             raise ValueError("building_code and building_name are required")
         self.building_code = building_code
         self.building_name = building_name
         self.output_path = output_path
         self.timezone = ZoneInfo(timezone)
+        self.buildings = buildings
 
     def fetch_day(self, query_date: date) -> dict[str, Any]:
         cookie = os.environ.get("HEBMU_COOKIE", "").strip()
@@ -100,17 +122,24 @@ class DirectEmptyRoomWorker:
         payload = response if isinstance(response, dict) else {}
         if status != 200 or payload.get("msg") != "app_retrun_success_public":
             raise RuntimeError(f"classroom API 未通过认证或返回异常：HTTP {status}，msg={payload.get('msg')}")
-        return {"date": query_date.isoformat(), "usage": list(extract_classroom_usage(payload))}
+        return {"date": query_date.isoformat(), "rooms": list(extract_classroom_names(payload)), "usage": list(extract_classroom_usage(payload))}
 
     def poll(self, *, start_date: date | None = None, days_ahead: int = 1) -> dict[str, Any]:
         if not 0 <= days_ahead <= 2:
             raise ValueError("days_ahead must be between 0 and 2")
         today = start_date or datetime.now(self.timezone).date()
-        result = {
+        if self.buildings:
+            building_results = []
+            for building in self.buildings:
+                worker = DirectEmptyRoomWorker(building_code=building["code"], building_name=building["name"], output_path=self.output_path, timezone=str(self.timezone))
+                building_results.append({"campus": building["campus"], "building": building["name"], "building_code": building["code"], "days": [worker.fetch_day(today + timedelta(days=offset)) for offset in range(days_ahead + 1)]})
+            result = {"updated_at": datetime.now(self.timezone).isoformat(), "buildings": building_results}
+        else:
+            result = {
             "updated_at": datetime.now(self.timezone).isoformat(),
             "building": self.building_name,
             "days": [self.fetch_day(today + timedelta(days=offset)) for offset in range(days_ahead + 1)],
-        }
+            }
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
         temporary = self.output_path.with_suffix(self.output_path.suffix + ".tmp")
         temporary.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")

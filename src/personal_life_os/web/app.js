@@ -1,4 +1,4 @@
-const state = { courses: [], calendarEvents: [], todos: [], selectedDate: new Date(), classroomUsageByDate: {}, roomViewDate: null };
+const state = { courses: [], calendarEvents: [], todos: [], selectedDate: new Date(), classroomUsageByDate: {}, roomViewDate: null, classroomBuildings: [], selectedBuildingCode: null, classroomRooms: [] };
 let editingCalendarId = null;
 let editingTodoId = null;
 const weekdayNames = ["一", "二", "三", "四", "五", "六", "日"];
@@ -88,12 +88,15 @@ async function toggleTodo(todoId) { const item = state.todos.find(todo => todo.i
 async function deleteTodo(todoId) { if (!window.confirm("确定删除这条待办吗？")) return; const response = await fetch(`/api/todos?id=${encodeURIComponent(todoId)}`, { method: "DELETE" }); if (response.ok) await loadTodos(); }
 function renderClassroomTimeline() {
   const target = document.querySelector("#room-timeline");
-  const dates = Object.keys(state.classroomUsageByDate); if (!dates.length) { target.innerHTML = `<div class="empty-state">完成一次校园网抓取后，这里会显示 1—19 教室的时间进度。</div>`; document.querySelector("#room-date-buttons").innerHTML = ""; return; }
+  const activeBuilding = state.classroomBuildings.find(item => item.building_code === state.selectedBuildingCode);
+  const dates = Object.keys(state.classroomUsageByDate); if (!dates.length) { target.innerHTML = `<div class="empty-state">完成一次校园网抓取后，这里会显示教室的时间进度。</div>`; document.querySelector("#room-date-buttons").innerHTML = ""; return; }
   if (!state.roomViewDate || !state.classroomUsageByDate[state.roomViewDate]) state.roomViewDate = dates[0];
   document.querySelector("#room-date-buttons").innerHTML = dates.map((value, index) => `<button class="room-date-button ${value === state.roomViewDate ? "active" : ""}" data-date="${value}">${index === 0 ? "今天" : "明天"}<small>${value.slice(5)}</small></button>`).join("");
   document.querySelectorAll(".room-date-button").forEach(button => button.onclick = async () => { state.roomViewDate = button.dataset.date; await loadRoomPeriods(state.roomViewDate); renderClassroomTimeline(); });
   const normalizeRoom = value => String(value || "").replace(/\s+/g, "");
   const usage = new Map((state.classroomUsageByDate[state.roomViewDate].usage || []).map(item => [normalizeRoom(item.room), new Set(item.occupied_periods || [])]));
+  const isEast = (activeBuilding?.building || "东教学楼").includes("东教学楼");
+  const rooms = isEast ? eastTeachingRooms : (state.classroomUsageByDate[state.roomViewDate]?.rooms?.length ? state.classroomUsageByDate[state.roomViewDate].rooms : state.classroomRooms.length ? state.classroomRooms : [...usage.keys()]);
   const timelineStart = 7 * 60; const timelineEnd = 23 * 60; const timelineMinutes = timelineEnd - timelineStart;
   const toMinutes = value => { const [hour, minute] = value.split(":").map(Number); return hour * 60 + minute; };
   const ranges = roomPeriods.map(period => period.split("-").map(toMinutes));
@@ -105,7 +108,7 @@ function renderClassroomTimeline() {
   const boundaryClass = index => index === 0 ? "period-line-deep" : ([1, 3, 6, 8, 10, 12].includes(index) ? "period-line-light" : "period-line-deep");
   const periodLines = ranges.map(([start], index) => `<i class="period-line ${boundaryClass(index)}" style="left:${position(start)}"></i>`).join("") + `<i class="period-line lunch-break-line" style="left:${position(ranges[4]?.[1] || 12 * 60)}"></i>`;
   const periodLabels = ranges.map(([start, end], index) => `<span class="period-label ${index % 2 === 1 ? "period-label-alt" : ""}" style="left:${position((start + end) / 2)}">${index + 1}</span>`).join("");
-  const roomRows = eastTeachingRooms.map((room, index) => {
+  const roomRows = rooms.map((room, index) => {
     const occupied = [...(usage.get(normalizeRoom(room)) || new Set())]
       .filter(period => period >= 1 && period <= ranges.length)
       .sort((a, b) => a - b);
@@ -124,17 +127,18 @@ function renderClassroomTimeline() {
       const width = Number(position(end).replace("%", "")) - Number(position(start).replace("%", ""));
       return `<b class="occupied-bar" style="left:${position(start)};width:${width}%" title="${room} · ${label} · 有课" aria-label="${room}，${label}，有课"><span>${label}</span></b>`;
     }).join("");
-    return `<div class="room-timeline-row"><div class="room-name"><span>${index + 1}教室</span></div><div class="room-track">${periodLines}${bars}</div></div>`;
+    const displayRoom = isEast ? `${index + 1}教室` : room;
+    return `<div class="room-timeline-row"><div class="room-name"><span>${escapeHtml(displayRoom)}</span></div><div class="room-track">${periodLines}${bars}</div></div>`;
   });
   const floorGroups = [];
   roomRows.forEach((row, index) => {
-    const floor = index < 4 ? 1 : Math.floor((index - 4) / 5) + 2;
+    const floor = isEast ? (index < 4 ? 1 : Math.floor((index - 4) / 5) + 2) : "";
     let group = floorGroups[floorGroups.length - 1];
     if (!group || group.floor !== floor) { group = { floor, rows: [] }; floorGroups.push(group); }
     group.rows.push(row);
   });
-  const groupedRows = floorGroups.map(group => `<div class="room-floor-group"><div class="floor-label">${group.floor}层</div><div class="floor-rows">${group.rows.join("")}</div></div>`).join("");
-  target.innerHTML = `<div class="room-timeline-grid"><div class="room-timeline-header"><div class="room-name building-heading"><span>建筑状态</span><strong>东教学楼</strong></div><div class="time-track">${timeScale}</div></div>${groupedRows}<div class="room-period-footer"><div class="room-name">课时</div><div class="time-track">${periodLabels}</div></div></div>`;
+  const groupedRows = floorGroups.map(group => `<div class="room-floor-group"><div class="floor-label">${group.floor ? `${group.floor}层` : ""}</div><div class="floor-rows">${group.rows.join("")}</div></div>`).join("");
+  target.innerHTML = `<div class="room-timeline-grid"><div class="room-timeline-header"><div class="room-name building-heading"><span>建筑状态</span><strong>${escapeHtml(activeBuilding?.building || "东教学楼")}</strong></div><div class="time-track">${timeScale}</div></div>${groupedRows}<div class="room-period-footer"><div class="room-name">课时</div><div class="time-track">${periodLabels}</div></div></div>`;
 }
 async function loadCourses() {
   const error = document.querySelector("#error-banner"); error.hidden = true;
@@ -150,7 +154,13 @@ async function loadClassroomUsage() {
     const response = await fetch("/api/empty-rooms", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
-    if (Object.keys(payload.classroom_usage_by_date || {}).length) {
+    state.classroomBuildings = payload.buildings || [];
+    if (state.classroomBuildings.length) {
+      state.selectedBuildingCode = state.selectedBuildingCode || state.classroomBuildings[0].building_code;
+      const selector = document.querySelector("#room-building-select");
+      if (selector) { selector.innerHTML = state.classroomBuildings.map(item => `<option value="${escapeHtml(item.building_code)}">${escapeHtml(item.building)}</option>`).join(""); selector.value = state.selectedBuildingCode; selector.onchange = () => { state.selectedBuildingCode = selector.value; const selected = state.classroomBuildings.find(item => item.building_code === state.selectedBuildingCode); state.classroomUsageByDate = selected?.classroom_usage_by_date || {}; state.classroomRooms = [...new Set(Object.values(state.classroomUsageByDate).flatMap(day => [...(day.rooms || []), ...(day.usage || []).map(item => item.room)]))]; state.roomViewDate = Object.keys(state.classroomUsageByDate)[0]; loadRoomPeriods(state.roomViewDate).then(renderClassroomTimeline); }; }
+      const selected = state.classroomBuildings.find(item => item.building_code === state.selectedBuildingCode) || state.classroomBuildings[0]; state.classroomUsageByDate = selected.classroom_usage_by_date || {}; state.classroomRooms = [...new Set(Object.values(state.classroomUsageByDate).flatMap(day => [...(day.rooms || []), ...(day.usage || []).map(item => item.room)]))]; state.roomViewDate = Object.keys(state.classroomUsageByDate)[0];
+    } else if (Object.keys(payload.classroom_usage_by_date || {}).length) {
       state.classroomUsageByDate = payload.classroom_usage_by_date;
       state.roomViewDate = Object.keys(state.classroomUsageByDate)[0];
     }

@@ -48,3 +48,4 @@ html,body{min-height:100%;background:#eaf1f8}body{overflow-x:hidden;border-radiu
 .time-track span{font-size:13px;font-weight:650}
 .period-label{font-size:18px;font-weight:750}
 .period-line-deep{border-left-color:#c7b4d2}.period-line-light{border-left-color:#e7dff0}.lunch-break-line{border-left-style:solid;border-left-color:#d9cce3}
+.room-building-select{border:1px solid #d9cce3;border-radius:8px;padding:7px 10px;background:#fff;color:#5C307D;font:inherit}

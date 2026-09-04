@@ -19,3 +19,4 @@
 .time-track span{font-size:13px;font-weight:650}
 .period-label{font-size:18px;font-weight:750}
 .period-line-deep{border-left-color:#c7b4d2}.period-line-light{border-left-color:#e7dff0}.lunch-break-line{border-left-style:solid;border-left-color:#d9cce3}
+.building-picker{display:flex;align-items:center;gap:8px;margin:0 0 14px;color:#796c86;font-size:12px}.building-picker select{border:1px solid #e2d8eb;border-radius:8px;padding:8px 10px;background:#fff;color:#5C307D;font:inherit}

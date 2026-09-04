@@ -150,6 +150,20 @@ def _empty_room_payload(path: Path) -> dict:
             })
         return sanitized
 
+    if isinstance(payload.get("buildings"), list):
+        buildings = []
+        for item in payload["buildings"]:
+            if not isinstance(item, dict) or not isinstance(item.get("days"), list):
+                continue
+            by_date = {}
+            for day in item["days"]:
+                if isinstance(day, dict) and day.get("date") and isinstance(day.get("usage"), list):
+                    rooms = [str(room).strip() for room in day.get("rooms", []) if isinstance(room, str) and room.strip()]
+                    by_date[date.fromisoformat(str(day["date"])).isoformat()] = {"rooms": rooms, "usage": safe_usage(day["usage"])}
+            if by_date:
+                buildings.append({"campus": str(item.get("campus") or ""), "building": str(item.get("building") or ""), "building_code": str(item.get("building_code") or ""), "classroom_usage_by_date": by_date})
+        return {"buildings": buildings, "updated_at": payload.get("updated_at"), "status": "ready" if buildings else "waiting"}
+
     query_date = str(payload.get("date", "")).strip()
     usage = payload.get("usage", [])
     if not query_date and isinstance(payload.get("days"), list):

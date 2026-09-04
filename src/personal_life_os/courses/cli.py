@@ -10,7 +10,7 @@ from .importers import import_schedule_file
 from .school import EmptyClassroomImporter, HebmuBrowserImporter, fetch_courses_and_classroom_usage
 from .empty_room_worker import WechatEmptyRoomWorker
 from .bridge import serve_bridge
-from .direct_probe import DirectEmptyRoomWorker, probe_direct_classroom
+from .direct_probe import DEFAULT_BUILDINGS, DirectEmptyRoomWorker, probe_direct_classroom
 from .storage import FinalScheduleStore
 
 
@@ -56,6 +56,7 @@ def main() -> int:
     direct_poll_command.add_argument("--output", type=Path, required=True)
     direct_poll_command.add_argument("--date", type=_date)
     direct_poll_command.add_argument("--days-ahead", type=int, default=1)
+    direct_poll_command.add_argument("--all-buildings", action="store_true", help="抓取中山、建华校区全部已配置楼栋")
 
     all_command = commands.add_parser("hebmu-all", help="fetch courses and classroom usage after one campus login")
     all_command.add_argument("--semester", required=True)
@@ -120,6 +121,7 @@ def main() -> int:
     elif args.command == "empty-room-direct":
         result = DirectEmptyRoomWorker(
             building_code=args.building_code, building_name=args.building_name, output_path=args.output,
+            buildings=DEFAULT_BUILDINGS if args.all_buildings else None,
         ).poll(start_date=args.date, days_ahead=args.days_ahead)
         print(f"已直接抓取 {len(result['days'])} 天，写入脱敏快照：{args.output}")
     elif args.command == "empty-room-bridge":

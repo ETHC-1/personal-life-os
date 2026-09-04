@@ -2,6 +2,7 @@ const defaultPeriods = ["08:00-08:40", "08:50-09:30", "09:50-10:30", "10:40-11:2
 let periods = defaultPeriods;
 const fallbackRooms = Array.from({ length: 19 }, (_, index) => `东教学楼${index + 1}教室`);
 let selectedDate = new URLSearchParams(location.search).get("date");
+let selectedBuildingCode = new URLSearchParams(location.search).get("building");
 let currentPayload = null;
 
 function escapeHtml(value) {
@@ -10,10 +11,15 @@ function escapeHtml(value) {
 
 function render(payload) {
   currentPayload = payload;
-  const byDate = payload.classroom_usage_by_date || {};
+  const buildings = payload.buildings || [];
+  const activeBuilding = buildings.find(item => item.building_code === selectedBuildingCode) || buildings[0];
+  if (activeBuilding) selectedBuildingCode = activeBuilding.building_code;
+  const byDate = activeBuilding?.classroom_usage_by_date || payload.classroom_usage_by_date || {};
   const dates = Object.keys(byDate).sort();
   if (!dates.includes(selectedDate)) selectedDate = dates[0] || null;
-  document.querySelector("#building").textContent = payload.building || "教学楼";
+  document.querySelector("#building").textContent = activeBuilding?.building || payload.building || "教学楼";
+  const buildingSelect = document.querySelector("#building-select");
+  if (buildingSelect) { buildingSelect.innerHTML = buildings.map(item => `<option value="${escapeHtml(item.building_code)}">${escapeHtml(item.building)}</option>`).join(""); buildingSelect.value = selectedBuildingCode || ""; buildingSelect.onchange = () => { selectedBuildingCode = buildingSelect.value; history.replaceState(null, "", `?building=${encodeURIComponent(selectedBuildingCode)}`); render(currentPayload); }; }
   document.querySelector("#status").textContent = payload.status === "ready" ? "数据已就绪" : "等待首次轮询";
   document.querySelector("#status-dot").className = payload.status === "ready" ? "ready" : "";
   document.querySelector("#updated-at").textContent = payload.updated_at ? `更新于 ${new Date(payload.updated_at).toLocaleString("zh-CN")}` : "暂无快照";

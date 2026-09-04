@@ -9,6 +9,6 @@ User=personal-life-os
 Group=personal-life-os
 WorkingDirectory=/opt/personal-life-os
 EnvironmentFile=/etc/personal-life-os-empty-room.env
-ExecStart=/opt/personal-life-os/.venv/bin/course-import empty-room-direct --output /var/lib/personal-life-os/empty-rooms.json --days-ahead 1
+ExecStart=/opt/personal-life-os/.venv/bin/course-import empty-room-direct --all-buildings --output /var/lib/personal-life-os/empty-rooms.json --days-ahead 1
 NoNewPrivileges=true
 PrivateTmp=true
