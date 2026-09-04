@@ -11,7 +11,8 @@ function escapeHtml(value) {
 
 function render(payload) {
   currentPayload = payload;
-  const buildings = payload.buildings || [];
+  const buildingPriority = item => { const name = item.building || ""; if (name.includes("东教学楼")) return 0; if (name.includes("主教学楼")) return 1; if (name.includes("大教室")) return 2; if (name.includes("小教室")) return 3; return 4; };
+  const buildings = [...(payload.buildings || [])].sort((a, b) => buildingPriority(a) - buildingPriority(b));
   const activeBuilding = buildings.find(item => item.building_code === selectedBuildingCode) || buildings[0];
   if (activeBuilding) selectedBuildingCode = activeBuilding.building_code;
   const byDate = activeBuilding?.classroom_usage_by_date || payload.classroom_usage_by_date || {};
