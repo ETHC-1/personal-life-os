@@ -145,6 +145,14 @@ class CourseTests(unittest.TestCase):
     def test_find_token_from_nested_token_response(self):
         self.assertEqual(_find_token({"data": {"token": "token-value-123456789"}}), "token-value-123456789")
 
+    def test_classroom_catalog_is_separate_from_usage_records(self):
+        payload = {
+            "jszylist": [{"jxcdmc": "东教学楼19教室", "jcdm2": "10,11"}],
+            "jxcdxxList": [{"jxcdmc": f"东教学楼{i}教室"} for i in range(1, 20)],
+        }
+        self.assertEqual(len(extract_classroom_names(payload)), 19)
+        self.assertEqual(extract_classroom_usage(payload), ({"room": "东教学楼19教室", "occupied_periods": [10, 11]},))
+
     def test_web_reads_sanitized_bridge_snapshot(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "empty-rooms.json"

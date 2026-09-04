@@ -177,7 +177,9 @@ class EmptyClassroomImporter:
 
 def extract_classroom_names(payload: dict[str, Any]) -> tuple[str, ...]:
     """Extract unique classroom names from a classroom API response."""
-    records = _classroom_records(payload)
+    # jxcdxxList is the complete room catalog. jszylist only contains rooms
+    # with usage, which is especially important for future dates.
+    records = _find_named_records(payload, {"jxcdxxList", "jxcdxxlist"}) or _classroom_records(payload)
     if not isinstance(records, list):
         raise ValueError("classroom response jsylist must be a list")
     names: set[str] = set()
@@ -192,7 +194,8 @@ def extract_classroom_names(payload: dict[str, Any]) -> tuple[str, ...]:
 
 def extract_classroom_usage(payload: dict[str, Any]) -> tuple[dict[str, Any], ...]:
     """Return only room names and occupied periods from a usage response."""
-    records = _classroom_records(payload)
+    # Usage periods come from jszylist; the catalog has no period field.
+    records = _find_named_records(payload, {"jszylist", "jsylist", "jsyzlist"}) or _classroom_records(payload)
     if not isinstance(records, list):
         raise ValueError("classroom response jsylist must be a list")
     usage: dict[str, set[int]] = {}
@@ -206,6 +209,29 @@ def extract_classroom_usage(payload: dict[str, Any]) -> tuple[dict[str, Any], ..
         periods = {int(value) for value in re.findall(r"(?<!\d)(?:0?[1-9]|1[0-3])(?!\d)", raw_periods)}
         usage.setdefault(re.sub(r"\s+", "", room.strip()), set()).update(periods)
     return tuple({"room": room, "occupied_periods": sorted(periods)} for room, periods in sorted(usage.items()))
+
+
+def _find_named_records(value: Any, keys: set[str]) -> list[dict[str, Any]]:
+    """Find the first named list of object records in a nested API payload."""
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except json.JSONDecodeError:
+            return []
+    if isinstance(value, dict):
+        for key, nested in value.items():
+            if key in keys:
+                return [item for item in nested if isinstance(item, dict)] if isinstance(nested, list) else []
+        for nested in value.values():
+            found = _find_named_records(nested, keys)
+            if found:
+                return found
+    elif isinstance(value, list):
+        for nested in value:
+            found = _find_named_records(nested, keys)
+            if found:
+                return found
+    return []
 
 
 def _classroom_records(payload: dict[str, Any]) -> Any:
