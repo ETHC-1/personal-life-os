@@ -1,0 +1,10 @@
+[Unit]
+Description=Check Personal Life OS campus Cookie every hour
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+Unit=personal-life-os-cookie-check.service
+
+[Install]
+WantedBy=timers.target

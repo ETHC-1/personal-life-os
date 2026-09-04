@@ -1,0 +1,14 @@
+[Unit]
+Description=Check Personal Life OS campus Cookie validity
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=personal-life-os
+Group=personal-life-os
+WorkingDirectory=/opt/personal-life-os
+EnvironmentFile=/etc/personal-life-os-empty-room.env
+ExecStart=/opt/personal-life-os/.venv/bin/course-import empty-room-cookie-check
+NoNewPrivileges=true
+PrivateTmp=true

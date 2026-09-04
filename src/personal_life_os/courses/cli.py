@@ -58,6 +58,9 @@ def main() -> int:
     direct_poll_command.add_argument("--days-ahead", type=int, default=1)
     direct_poll_command.add_argument("--all-buildings", action="store_true", help="抓取中山、建华校区全部已配置楼栋")
 
+    cookie_command = commands.add_parser("empty-room-cookie-check", help="检查校园网 Cookie 是否仍然有效")
+    cookie_command.add_argument("--date", type=_date, default=date.today(), help="用于验证的查询日期，默认今天")
+
     all_command = commands.add_parser("hebmu-all", help="fetch courses and classroom usage after one campus login")
     all_command.add_argument("--semester", required=True)
     all_command.add_argument("--start", required=True, type=_date)
@@ -127,6 +130,17 @@ def main() -> int:
             print(f"已抓取 {len(result.get('buildings', []))} 个楼栋，写入脱敏快照：{args.output}")
         else:
             print(f"已直接抓取 {len(result['days'])} 天，写入脱敏快照：{args.output}")
+    elif args.command == "empty-room-cookie-check":
+        result = probe_direct_classroom(
+            building_code="103966187", building_name="中山校区.东教学楼", query_date=args.date,
+        )
+        endpoint = result.get("classroom_endpoint", {})
+        valid = bool(result.get("token_endpoint", {}).get("has_token")
+                     and endpoint.get("http_status") == 200
+                     and endpoint.get("msg") == "app_retrun_success_public")
+        print("COOKIE有效" if valid else "COOKIE已失效")
+        print(f"token接口：HTTP {result.get('token_endpoint', {}).get('http_status')}，教室接口：HTTP {endpoint.get('http_status')}，msg={endpoint.get('msg')}")
+        return 0 if valid else 2
     elif args.command == "empty-room-bridge":
         serve_bridge(port=args.port, output_path=args.output, remote_url=args.remote_url)
     else:
