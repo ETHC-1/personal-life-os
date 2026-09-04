@@ -132,7 +132,7 @@ function renderClassroomTimeline() {
       return `<b class="occupied-bar ${long ? "occupied-bar-long" : ""}" style="left:${position(start)};width:${width}%" title="${room} · ${label} · 有课" aria-label="${room}，${label}，有课">${labelMarkup}</b>`;
     }).join("");
     const displayRoom = isEast ? `${index + 1}教室` : room;
-    return `<div class="room-timeline-row"><div class="room-name"><span>${escapeHtml(displayRoom)}</span></div><div class="room-track"><i class="availability-bar"></i>${periodLines}${bars}</div></div>`;
+    return `<div class="room-timeline-row"><div class="room-name"><span title="${escapeHtml(displayRoom)}">${escapeHtml(displayRoom)}</span></div><div class="room-track"><i class="availability-bar"></i>${periodLines}${bars}</div></div>`;
   });
   const floorGroups = [];
   roomRows.forEach((row, index) => {
