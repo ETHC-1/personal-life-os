@@ -96,7 +96,7 @@ function renderClassroomTimeline() {
   const normalizeRoom = value => String(value || "").replace(/\s+/g, "");
   const usage = new Map((state.classroomUsageByDate[state.roomViewDate].usage || []).map(item => [normalizeRoom(item.room), new Set(item.occupied_periods || [])]));
   const isEast = (activeBuilding?.building || "东教学楼").includes("东教学楼");
-  const rooms = isEast ? eastTeachingRooms : (state.classroomUsageByDate[state.roomViewDate]?.rooms?.length ? state.classroomUsageByDate[state.roomViewDate].rooms : state.classroomRooms.length ? state.classroomRooms : [...usage.keys()]);
+  const rooms = isEast ? eastTeachingRooms : (state.classroomRooms.length ? state.classroomRooms : [...usage.keys()]);
   const timelineStart = 7 * 60; const timelineEnd = 23 * 60; const timelineMinutes = timelineEnd - timelineStart;
   const toMinutes = value => { const [hour, minute] = value.split(":").map(Number); return hour * 60 + minute; };
   const ranges = roomPeriods.map(period => period.split("-").map(toMinutes));

@@ -31,7 +31,8 @@ function render(payload) {
   const usage = new Map((day.usage || []).map(item => [item.room, new Set(item.occupied_periods || [])]));
   const buildingName = activeBuilding?.building || payload.building || "教学楼";
   const isEast = buildingName.includes("东教学楼");
-  const rooms = day.rooms?.length ? day.rooms : (isEast ? fallbackRooms : [...usage.keys()]);
+  const allRooms = [...new Set(dates.flatMap(date => (byDate[date]?.rooms || []).concat((byDate[date]?.usage || []).map(item => item.room))))];
+  const rooms = isEast ? fallbackRooms : allRooms;
   document.querySelector("#free-count").textContent = rooms.filter(room => !(usage.get(room)?.size)).length;
   const startMinutes = 7 * 60; const endMinutes = 23 * 60;
   const toMinutes = value => { const [hour, minute] = value.split(":").map(Number); return hour * 60 + minute; };

@@ -161,6 +161,13 @@ def _empty_room_payload(path: Path) -> dict:
                     rooms = [str(room).strip() for room in day.get("rooms", []) if isinstance(room, str) and room.strip()]
                     by_date[date.fromisoformat(str(day["date"])).isoformat()] = {"rooms": rooms, "usage": safe_usage(day["usage"])}
             if by_date:
+                # The school endpoint may omit entirely empty rooms on some dates.
+                # Keep one stable room catalog per building so switching dates does
+                # not make rows disappear; rooms without usage remain free.
+                room_catalog = sorted({room for day in by_date.values() for room in day["rooms"]}
+                                      | {entry["room"] for day in by_date.values() for entry in day["usage"]})
+                for day in by_date.values():
+                    day["rooms"] = room_catalog
                 buildings.append({"campus": str(item.get("campus") or ""), "building": str(item.get("building") or ""), "building_code": str(item.get("building_code") or ""), "classroom_usage_by_date": by_date})
         return {"buildings": buildings, "updated_at": payload.get("updated_at"), "status": "ready" if buildings else "waiting"}
 
