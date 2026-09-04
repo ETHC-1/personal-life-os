@@ -161,6 +161,9 @@ class CourseTests(unittest.TestCase):
         self.assertEqual(usage["东教学楼19教室"], [10, 11])
         self.assertEqual(usage["东教学楼1教室"], [10, 11, 12, 13])
 
+    def test_classroom_records_without_periods_are_not_usage(self):
+        self.assertEqual(extract_classroom_usage({"jszylist": [{"jxcdmc": "励志楼101", "jcdm2": ""}]}), ())
+
     def test_web_reads_sanitized_bridge_snapshot(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "empty-rooms.json"

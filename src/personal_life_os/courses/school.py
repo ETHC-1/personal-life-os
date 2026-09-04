@@ -214,6 +214,10 @@ def extract_classroom_usage(payload: dict[str, Any]) -> tuple[dict[str, Any], ..
             continue
         raw_periods = str(record.get("jcdm2") or record.get("periods") or record.get("jcdm") or "")
         periods = {int(value) for value in re.findall(r"(?<!\d)(?:0?[1-9]|1[0-3])(?!\d)", raw_periods)}
+        if not periods:
+            # A room catalog or an activity record can have a room code but no
+            # occupied periods. It belongs to the catalog, not to usage data.
+            continue
         usage.setdefault(re.sub(r"\s+", "", room.strip()), set()).update(periods)
     return tuple({"room": room, "occupied_periods": sorted(periods)} for room, periods in sorted(usage.items()))
 
