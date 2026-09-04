@@ -4,33 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#5C307D">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>空教室查询</title>
-  <link rel="stylesheet" href="/empty-rooms.css?v=20260904">
+  <link rel="stylesheet" href="/empty-rooms.css?v=20260903">
 </head>
 <body>
   <main>
     <header>
-      <div><p class="eyebrow">一键查询</p><h1>空教室</h1><p id="building">正在读取楼栋…</p></div>
-      <button id="refresh" class="refresh-button" type="button" aria-label="刷新数据">刷新</button>
+      <div><p class="eyebrow">教室实时快照</p><h1>空教室查询</h1><p id="building">正在读取楼栋…</p></div>
+      <button id="refresh" type="button">刷新</button>
     </header>
     <section class="status-card" aria-live="polite">
       <span id="status-dot"></span><strong id="status">正在加载…</strong><small id="updated-at"></small>
     </section>
-    <section class="query-card">
-      <div class="query-heading"><span>快速查询</span><small id="query-hint">自动定位最近课时</small></div>
-      <div class="picker-row">
-        <label>楼栋<select id="building-select" aria-label="选择楼栋"></select></label>
-        <nav id="dates" aria-label="查询日期"></nav>
-      </div>
-      <div id="period-buttons" class="period-buttons" aria-label="选择课时"></div>
-    </section>
-    <section class="summary"><div><strong id="free-count">—</strong><span>间可用</span></div><small id="period-label">正在读取课时…</small></section>
-    <section class="result-card"><div class="result-title"><h2>可用教室</h2><small id="result-note"></small></div><div id="room-list" class="room-list"><div class="message">正在读取空教室数据…</div></div></section>
-    <details class="advanced"><summary>查看全天时间轴</summary><section id="grid" class="grid-wrap"><div class="message">正在读取空教室数据…</div></section></details>
-    <footer>数据每 5 分钟自动刷新 · <a href="/api/empty-rooms">数据接口</a></footer>
+    <nav id="dates" aria-label="查询日期"></nav>
+    <label class="building-picker">楼栋 <select id="building-select" aria-label="选择楼栋"></select></label>
+    <section class="summary"><strong id="free-count">—</strong><span>间全天空闲</span><small>紫色块表示该节有课</small></section>
+    <section id="grid" class="grid-wrap"><div class="message">正在读取空教室数据…</div></section>
+    <footer>页面每 5 分钟自动刷新 · <a href="/api/empty-rooms">JSON API</a></footer>
   </main>
-  <script src="/empty-rooms.js?v=20260904"></script>
+  <script src="/empty-rooms.js?v=20260903"></script>
 </body>
 </html>
