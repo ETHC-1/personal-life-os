@@ -28,7 +28,9 @@ function render(payload) {
   if (!selectedDate) { document.querySelector("#free-count").textContent = "0"; document.querySelector("#grid").innerHTML = '<div class="message">服务已启动，等待定时任务写入首份数据。</div>'; return; }
   const day = byDate[selectedDate] || {};
   const usage = new Map((day.usage || []).map(item => [item.room, new Set(item.occupied_periods || [])]));
-  const rooms = day.rooms?.length ? day.rooms : fallbackRooms;
+  const buildingName = activeBuilding?.building || payload.building || "教学楼";
+  const isEast = buildingName.includes("东教学楼");
+  const rooms = day.rooms?.length ? day.rooms : (isEast ? fallbackRooms : [...usage.keys()]);
   document.querySelector("#free-count").textContent = rooms.filter(room => !(usage.get(room)?.size)).length;
   const startMinutes = 7 * 60; const endMinutes = 23 * 60;
   const toMinutes = value => { const [hour, minute] = value.split(":").map(Number); return hour * 60 + minute; };
@@ -45,17 +47,18 @@ function render(payload) {
     const occupied = [...(usage.get(room) || new Set())].filter(period => period >= 1 && period <= ranges.length).sort((a, b) => a - b);
     const groups = occupied.reduce((result, period) => { const last = result[result.length - 1]; if (last && period === last[last.length - 1] + 1 && period !== 6) last.push(period); else result.push([period]); return result; }, []);
     const bars = groups.map(group => { const [start] = ranges[group[0] - 1]; const [, end] = ranges[group[group.length - 1] - 1]; const label = group.length === 1 ? periods[group[0] - 1] : `${periods[group[0] - 1].split("-")[0]}-${periods[group[group.length - 1] - 1].split("-")[1]}`; const width = Number(position(end).replace("%", "")) - Number(position(start).replace("%", "")); return `<b class="occupied-bar" style="left:${position(start)};width:${width}%" title="${escapeHtml(room)} · ${label} · 有课"><span>${label}</span></b>`; }).join("");
-    return `<div class="room-timeline-row"><div class="room-name"><span>${index + 1}教室</span></div><div class="room-track">${periodLines}${bars}</div></div>`;
+    const displayRoom = isEast ? `${index + 1}教室` : room;
+    return `<div class="room-timeline-row"><div class="room-name"><span>${escapeHtml(displayRoom)}</span></div><div class="room-track">${periodLines}${bars}</div></div>`;
   });
   const floorGroups = [];
   rows.forEach((row, index) => {
-    const floor = index < 4 ? 1 : Math.floor((index - 4) / 5) + 2;
+    const floor = isEast ? (index < 4 ? 1 : Math.floor((index - 4) / 5) + 2) : "";
     let group = floorGroups[floorGroups.length - 1];
     if (!group || group.floor !== floor) { group = { floor, rows: [] }; floorGroups.push(group); }
     group.rows.push(row);
   });
-  const groupedRows = floorGroups.map(group => `<div class="room-floor-group"><div class="floor-label">${group.floor}层</div><div class="floor-rows">${group.rows.join("")}</div></div>`).join("");
-  document.querySelector("#grid").innerHTML = `<div class="room-timeline-grid"><div class="room-timeline-header"><div class="room-name building-heading"><span>建筑状态</span><strong>东教学楼</strong></div><div class="time-track">${timeScale}</div></div>${groupedRows}<div class="room-period-footer"><div class="room-name">课时</div><div class="time-track">${periodLabels}</div></div></div>`;
+  const groupedRows = floorGroups.map(group => `<div class="room-floor-group"><div class="floor-label">${group.floor ? `${group.floor}层` : ""}</div><div class="floor-rows">${group.rows.join("")}</div></div>`).join("");
+  document.querySelector("#grid").innerHTML = `<div class="room-timeline-grid"><div class="room-timeline-header"><div class="room-name building-heading"><span>建筑状态</span><strong>${escapeHtml(buildingName)}</strong></div><div class="time-track">${timeScale}</div></div>${groupedRows}<div class="room-period-footer"><div class="room-name">课时</div><div class="time-track">${periodLabels}</div></div></div>`;
 }
 
 async function load() {

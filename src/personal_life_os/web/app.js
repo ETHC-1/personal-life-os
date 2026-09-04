@@ -88,7 +88,7 @@ async function toggleTodo(todoId) { const item = state.todos.find(todo => todo.i
 async function deleteTodo(todoId) { if (!window.confirm("确定删除这条待办吗？")) return; const response = await fetch(`/api/todos?id=${encodeURIComponent(todoId)}`, { method: "DELETE" }); if (response.ok) await loadTodos(); }
 function renderClassroomTimeline() {
   const target = document.querySelector("#room-timeline");
-  const activeBuilding = state.classroomBuildings.find(item => item.building_code === state.selectedBuildingCode);
+  const activeBuilding = state.classroomBuildings.find(item => item.building_code === state.selectedBuildingCode) || state.classroomBuildings[0];
   const dates = Object.keys(state.classroomUsageByDate); if (!dates.length) { target.innerHTML = `<div class="empty-state">完成一次校园网抓取后，这里会显示教室的时间进度。</div>`; document.querySelector("#room-date-buttons").innerHTML = ""; return; }
   if (!state.roomViewDate || !state.classroomUsageByDate[state.roomViewDate]) state.roomViewDate = dates[0];
   document.querySelector("#room-date-buttons").innerHTML = dates.map((value, index) => `<button class="room-date-button ${value === state.roomViewDate ? "active" : ""}" data-date="${value}">${index === 0 ? "今天" : "明天"}<small>${value.slice(5)}</small></button>`).join("");
