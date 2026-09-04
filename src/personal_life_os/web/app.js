@@ -126,7 +126,10 @@ function renderClassroomTimeline() {
         : `${roomPeriods[group[0] - 1].split("-")[0]}-${roomPeriods[group[group.length - 1] - 1].split("-")[1]}`;
       const width = Number(position(end).replace("%", "")) - Number(position(start).replace("%", ""));
       const long = end - start > 120;
-      return `<b class="occupied-bar ${long ? "occupied-bar-long" : ""}" style="left:${position(start)};width:${width}%" title="${room} · ${label} · 有课" aria-label="${room}，${label}，有课"><span class="bar-label">${label}</span></b>`;
+      const labelMarkup = long
+        ? `<span class="bar-label"><span>${roomPeriods[group[0] - 1].split("-")[0]}</span><span>${roomPeriods[group[group.length - 1] - 1].split("-")[1]}</span></span>`
+        : `<span class="bar-label">${label}</span>`;
+      return `<b class="occupied-bar ${long ? "occupied-bar-long" : ""}" style="left:${position(start)};width:${width}%" title="${room} · ${label} · 有课" aria-label="${room}，${label}，有课">${labelMarkup}</b>`;
     }).join("");
     const displayRoom = isEast ? `${index + 1}教室` : room;
     return `<div class="room-timeline-row"><div class="room-name"><span>${escapeHtml(displayRoom)}</span></div><div class="room-track"><i class="availability-bar"></i>${periodLines}${bars}</div></div>`;
