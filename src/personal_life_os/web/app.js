@@ -111,8 +111,7 @@ function renderClassroomTimeline() {
       .sort((a, b) => a - b);
     const groups = occupied.reduce((result, period) => {
       const last = result[result.length - 1];
-      const previous = last && ranges[period - 2];
-      if (last && period === last[last.length - 1] + 1 && previous?.[1] === ranges[period - 1]?.[0]) last.push(period);
+      if (last && period === last[last.length - 1] + 1 && period !== 6) last.push(period);
       else result.push([period]);
       return result;
     }, []);
