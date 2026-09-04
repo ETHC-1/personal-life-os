@@ -123,7 +123,10 @@ def main() -> int:
             building_code=args.building_code, building_name=args.building_name, output_path=args.output,
             buildings=DEFAULT_BUILDINGS if args.all_buildings else None,
         ).poll(start_date=args.date, days_ahead=args.days_ahead)
-        print(f"已直接抓取 {len(result['days'])} 天，写入脱敏快照：{args.output}")
+        if args.all_buildings:
+            print(f"已抓取 {len(result.get('buildings', []))} 个楼栋，写入脱敏快照：{args.output}")
+        else:
+            print(f"已直接抓取 {len(result['days'])} 天，写入脱敏快照：{args.output}")
     elif args.command == "empty-room-bridge":
         serve_bridge(port=args.port, output_path=args.output, remote_url=args.remote_url)
     else:
