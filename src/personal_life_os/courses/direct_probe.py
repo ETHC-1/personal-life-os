@@ -130,10 +130,15 @@ class DirectEmptyRoomWorker:
         today = start_date or datetime.now(self.timezone).date()
         if self.buildings:
             building_results = []
+            errors = []
             for building in self.buildings:
-                worker = DirectEmptyRoomWorker(building_code=building["code"], building_name=building["name"], output_path=self.output_path, timezone=str(self.timezone))
-                building_results.append({"campus": building["campus"], "building": building["name"], "building_code": building["code"], "days": [worker.fetch_day(today + timedelta(days=offset)) for offset in range(days_ahead + 1)]})
-            result = {"updated_at": datetime.now(self.timezone).isoformat(), "buildings": building_results}
+                try:
+                    worker = DirectEmptyRoomWorker(building_code=building["code"], building_name=building["name"], output_path=self.output_path, timezone=str(self.timezone))
+                    days = [worker.fetch_day(today + timedelta(days=offset)) for offset in range(days_ahead + 1)]
+                    building_results.append({"campus": building["campus"], "building": building["name"], "building_code": building["code"], "days": days})
+                except (OSError, RuntimeError, ValueError, TypeError) as error:
+                    errors.append({"building": building["name"], "building_code": building["code"], "error": str(error)})
+            result = {"updated_at": datetime.now(self.timezone).isoformat(), "buildings": building_results, "errors": errors}
         else:
             result = {
             "updated_at": datetime.now(self.timezone).isoformat(),
